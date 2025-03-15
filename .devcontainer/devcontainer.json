@@ -1,0 +1,39 @@
+{
+	"name": "Existing Dockerfile",
+	"build": {
+		"context": "..",
+		"dockerfile": "../Dockerfile"
+	},
+	"containerEnv": {
+		"WORKSPACE_DIR": "/ahc"
+	},
+	"workspaceFolder": "/ahc",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/ahc,type=bind,consistency=cached",
+	"runArgs": [],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"esbenp.prettier-vscode",
+				"ms-vscode.cpptools",
+				"ms-vscode.cpptools-extension-pack",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"IBM.output-colorizer",
+				"mechatroner.rainbow-csv",
+				"oderwat.indent-rainbow",
+				"vscode-icons-team.vscode-icons",
+				"MS-CEINTL.vscode-language-pack-ja",
+				"ms-azuretools.vscode-docker",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"charliermarsh.ruff",
+				"shardulm94.trailing-spaces",
+				"usernamehw.errorlens",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"timonwong.shellcheck",
+				"foxundermoon.shell-format"
+			]
+		}
+	}
+}

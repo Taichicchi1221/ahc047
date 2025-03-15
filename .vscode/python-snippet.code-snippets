@@ -1,0 +1,22 @@
+{
+    "pytemplate": {
+        "prefix": "template",
+        "body": [
+            "# author:  Taichicchi",
+            "# created: $CURRENT_DATE.$CURRENT_MONTH.$CURRENT_YEAR $CURRENT_HOUR:$CURRENT_MINUTE:$CURRENT_SECOND",
+            ""
+        ]
+    },
+    "MOD1": {
+        "prefix": "MOD1",
+        "body": [
+            "MOD = 998244353"
+        ]
+    },
+    "MOD2": {
+        "prefix": "MOD2",
+        "body": [
+            "MOD = 1000000007"
+        ]
+    }
+}

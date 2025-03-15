@@ -1,0 +1,33 @@
+{
+	"C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
+	"editor.stickyScroll.enabled": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit",
+		"source.organizeImports": "explicit"
+	},
+	"editor.formatOnSave": true,
+	"[shellscript]": {
+		"editor.defaultFormatter": "foxundermoon.shell-format"
+	},
+	"[python]": {
+		"editor.defaultFormatter": "ms-python.black-formatter"
+	},
+	"[cpp]": {
+		"editor.semanticHighlighting.enabled": true,
+		"editor.stickyScroll.defaultModel": "foldingProviderModel",
+		"editor.suggest.insertMode": "replace"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"[dockerfile]": {
+		"editor.defaultFormatter": "ms-azuretools.vscode-docker"
+	},
+	"isort.check": true,
+	"black-formatter.args": [
+		"--line-length=120"
+	]
+}

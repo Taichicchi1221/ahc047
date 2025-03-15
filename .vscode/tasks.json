@@ -1,0 +1,57 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Python(シングルケース)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${WORKSPACE_DIR}/run/single_run_python.py"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Python(マルチケース)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${WORKSPACE_DIR}/run/multi_run_python.py"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "C++(シングルケース)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${WORKSPACE_DIR}/run/single_run_cpp.py"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "C++(マルチケース)",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${WORKSPACE_DIR}/run/multi_run_cpp.py"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
