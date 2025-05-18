@@ -1,6 +1,7 @@
 # author:  Taichicchi
 # created: 18.05.2025 19:00:00
 
+import copy
 import random
 import sys
 import time
@@ -70,20 +71,19 @@ def make_initial_solution(input: Input, p=100):
 
     def make_row(p, index):
         # p: 50 <= p <= 100
-        # index: 0 <= index < 12
-        n = 12
-        assert 0 <= index < n
+        # index: 0 <= index < M
+        assert 0 <= index < M
         assert 0 <= p <= 100
-        result = [0] * n
+        result = [0] * M
         result[index] = p
         rest = 100 - p
-        num_rest = n - 1
+        num_rest = M - 1
         base = rest // num_rest
         extra = rest % num_rest
 
         # 残りの場所に均等に
         cur = 0
-        for i in range(n):
+        for i in range(M):
             if i == index:
                 continue
             # 余りを前から順に加算
@@ -94,9 +94,56 @@ def make_initial_solution(input: Input, p=100):
 
     # 遷移確率の初期化
     for i in range(M):
-        row = make_row(p, (i + 1) % M)
+        if i < len(best_str) - 1:
+            row = make_row(p, i + 1)
+        elif i == len(best_str) - 1:
+            row = make_row(p, 0)
+        else:
+            row = [9, 9, 9, 9, 8, 8, 8, 8, 8, 8, 8, 8]
         A.append(row)
+
     return Output(C, A)
+
+
+def hill_climbing(input: Input, time_keeper: TimeKeeper):
+    def get_neighbor(output: Output):
+        # 近傍解を生成する
+        C = copy.deepcopy(output.C)
+        A = copy.deepcopy(output.A)
+
+        # ランダムに1つの状態を選び、文字を変更する
+        index = random.randint(0, M - 1)
+        new_char = random.choice("abcdef")
+        C[index] = new_char
+
+        # 遷移確率行列をランダムに変更する
+        d = random.randint(1, 10)
+        idx = random.randint(0, M - 1)
+        idx1, idx2 = random.sample(range(M), 2)
+
+        max_add = min(d, 100 - A[idx][idx1], A[idx][idx2])
+        if max_add > 0:
+            A[idx][idx1] += max_add
+            A[idx][idx2] -= max_add
+
+        return Output(C, A)
+
+    best_output = make_initial_solution(input, p=50)
+    best_score = compute_score(input, best_output)
+
+    while True:
+        now_output = get_neighbor(best_output)
+        now_score = compute_score(input, now_output)
+
+        if now_score > best_score:
+            print(f"{best_score} -> {now_score}", file=sys.stderr)
+            best_output = now_output
+            best_score = now_score
+
+        if time_keeper.is_timeout():
+            break
+
+    return best_output
 
 
 def compute_word_probability(word, L, C, A):
@@ -168,30 +215,7 @@ if __name__ == "__main__":
 
     input = Input(S, P)
 
-    best_score = 0
-    best_output = None
-    best_p = 0
-    for p in range(20, 91, 10):
-        output = make_initial_solution(input, p)
-        score = compute_score(input, output)
-        print(f"p: {p}, {score}", file=sys.stderr)
-        if score > best_score:
-            best_score = score
-            best_output = output
-            best_p = p
-
-    for p in range(best_p - 5, best_p + 5):
-        if time_keeper.is_timeout():
-            break
-        output = make_initial_solution(input, p)
-        score = compute_score(input, output)
-        print(f"p: {p}, {score}", file=sys.stderr)
-        if score > best_score:
-            best_score = score
-            best_output = output
-            best_p = p
-
-    output = best_output
+    output = hill_climbing(input, time_keeper)
     output.print()
 
     score = compute_score(input, output)
