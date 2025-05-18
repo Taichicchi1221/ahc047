@@ -1,46 +1,65 @@
 # author:  Taichicchi
 # created: 18.05.2025 19:00:00
 
-
-from collections import Counter
+import sys
 
 import numpy as np
 
+N, M, L = 36, 12, 10**6
 
-class LLM:
-    def __init__(self, N, M, L, S_list, P_list):
-        self.N = N
-        self.M = M
-        self.L = L
-        self.S_list = S_list
-        self.P_list = P_list
-        self.C = []  # 状態ごとの文字
-        self.A = []  # 遷移確率行列（整数パーセント）
 
-    def greedy_design(self):
-        # 1. 文字割り当て: Sの先頭文字の頻度順でM個選ぶ
-        freq = Counter(s[0] for s in self.S_list)
-        most_common = [c for c, _ in freq.most_common()]
-        # 'a'-'f'全てカバー
-        for c in "abcdef":
-            if c not in most_common:
-                most_common.append(c)
-        # M=12個まで繰り返し使う
-        self.C = (most_common * ((self.M + 5) // 6))[: self.M]
+class Input:
+    def __init__(self, S, P):
+        self.S = S
+        self.P = P
 
-        # 2. 遷移確率: 単純に均等
-        self.A = []
-        base = 100 // self.M
-        for i in range(self.M):
-            row = [base] * self.M
-            # 端数調整（最初の要素にまとめる）
-            row[0] += 100 - sum(row)
-            self.A.append(row)
+    def __str__(self):
+        return f"S: {self.S}, P: {self.P}"
 
-    def print_model(self):
-        for i in range(self.M):
+
+class Output:
+    def __init__(self, C, A):
+        self.C = C
+        self.A = A
+
+    def __str__(self):
+        return f"C: {self.C}, A: {self.A}"
+
+    def print(self):
+        for i in range(len(self.C)):
             row = [self.C[i]] + list(map(str, self.A[i]))
             print(" ".join(row))
+
+
+def greedy(input: Input):
+    # 最も点数が高い文字列を探す
+    best_idx = max(range(N), key=lambda i: input.P[i])
+    best_str = input.S[best_idx]
+
+    # best_strの長さでループを作り、残りの状態は適当な文字で埋める
+    C = []
+    A = []
+
+    # best_strを割当
+    for i in range(len(best_str)):
+        C.append(best_str[i])
+
+    # 残りの状態を適当な文字（例えば 'a'）で埋める
+    while len(C) < M:
+        C.append("a")
+
+    # 遷移確率の初期化
+    for i in range(M):
+        row = [0] * M
+        if i < len(best_str) - 1:
+            row[i + 1] = 100  # 次の文字へ必ず遷移
+        elif i == len(best_str) - 1:
+            row[0] = 100  # ループに戻す
+        else:
+            row[i] = 100  # 余った状態は自分自身に留まる（影響しない）
+        A.append(row)
+
+    return Output(C, A)
 
 
 def compute_word_probability(word, L, C, A):
@@ -93,45 +112,26 @@ def compute_word_probability(word, L, C, A):
     return max(0.0, min(1.0, ret))
 
 
-class Evaluator:
-    def __init__(self, model):
-        self.model = model
-
-    def compute_score(self):
-        N, M, L, S_list, P_list = (
-            self.model.N,
-            self.model.M,
-            self.model.L,
-            self.model.S_list,
-            self.model.P_list,
-        )
-        C = self.model.C
-        A = self.model.A
-        total_score = 0.0
-        for S, P in zip(S_list, P_list):
-            prob = compute_word_probability(S, L, C, A)
-            total_score += P * prob
-        return round(total_score)
+def compute_score(input: Input, output: Output):
+    total_score = 0.0
+    for s, p in zip(input.S, input.P):
+        prob = compute_word_probability(s, L, output.C, output.A)
+        total_score += p * prob
+    return round(total_score)
 
 
-# ====== 使用例（入力は標準入力から） ======
 if __name__ == "__main__":
-    import sys
-
-    input = sys.stdin.readline
-
-    N, M, L = map(int, input().split())
-    S_list = []
-    P_list = []
+    input()  # 1行目を読み飛ばす
+    S, P = [], []
     for _ in range(N):
         s, p = input().split()
-        S_list.append(s)
-        P_list.append(int(p))
+        S.append(s)
+        P.append(int(p))
 
-    model = LLM(N, M, L, S_list, P_list)
-    model.greedy_design()
-    model.print_model()  # 出力フォーマット
+    input = Input(S, P)
 
-    # 評価（スコア計算）
-    evaluator = Evaluator(model)
-    print("score ", evaluator.compute_score(), file=sys.stderr)
+    output = greedy(input)
+    output.print()
+
+    score = compute_score(input, output)
+    print(f"score {score}", file=sys.stderr)
