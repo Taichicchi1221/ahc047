@@ -1,15 +1,24 @@
 # author:  Taichicchi
 # created: 18.05.2025 19:00:00
 
+import random
 import sys
+import time
 
 import numpy as np
 
+random.seed(42)
 N, M, L = 36, 12, 10**6
 
 
 class Input:
     def __init__(self, S, P):
+        idxs = [i for i in range(N)]
+        idxs.sort(key=lambda i: P[i], reverse=True)
+
+        S = [S[i] for i in idxs]
+        P = [P[i] for i in idxs]
+
         self.S = S
         self.P = P
 
@@ -31,10 +40,21 @@ class Output:
             print(" ".join(row))
 
 
-def greedy(input: Input):
-    # 最も点数が高い文字列を探す
-    best_idx = max(range(N), key=lambda i: input.P[i])
-    best_str = input.S[best_idx]
+class TimeKeeper:
+    def __init__(self, timeout: float = 1.5):
+        self.start_time = time.perf_counter()
+        self.timeout = timeout
+
+    def elapsed_time(self):
+        return time.perf_counter() - self.start_time
+
+    def is_timeout(self):
+        return self.elapsed_time() > self.timeout
+
+
+def make_initial_solution(input: Input, p=100):
+    # 最初の解を生成する
+    best_str = input.S[0]
 
     # best_strの長さでループを作り、残りの状態は適当な文字で埋める
     C = []
@@ -48,17 +68,34 @@ def greedy(input: Input):
     while len(C) < M:
         C.append("a")
 
+    def make_row(p, index):
+        # p: 50 <= p <= 100
+        # index: 0 <= index < 12
+        n = 12
+        assert 0 <= index < n
+        assert 0 <= p <= 100
+        result = [0] * n
+        result[index] = p
+        rest = 100 - p
+        num_rest = n - 1
+        base = rest // num_rest
+        extra = rest % num_rest
+
+        # 残りの場所に均等に
+        cur = 0
+        for i in range(n):
+            if i == index:
+                continue
+            # 余りを前から順に加算
+            add = base + (1 if cur < extra else 0)
+            result[i] = add
+            cur += 1
+        return result
+
     # 遷移確率の初期化
     for i in range(M):
-        row = [0] * M
-        if i < len(best_str) - 1:
-            row[i + 1] = 100  # 次の文字へ必ず遷移
-        elif i == len(best_str) - 1:
-            row[0] = 100  # ループに戻す
-        else:
-            row[i] = 100  # 余った状態は自分自身に留まる（影響しない）
+        row = make_row(p, (i + 1) % M)
         A.append(row)
-
     return Output(C, A)
 
 
@@ -121,6 +158,7 @@ def compute_score(input: Input, output: Output):
 
 
 if __name__ == "__main__":
+    time_keeper = TimeKeeper(timeout=1.8)
     input()  # 1行目を読み飛ばす
     S, P = [], []
     for _ in range(N):
@@ -130,7 +168,30 @@ if __name__ == "__main__":
 
     input = Input(S, P)
 
-    output = greedy(input)
+    best_score = 0
+    best_output = None
+    best_p = 0
+    for p in range(20, 91, 10):
+        output = make_initial_solution(input, p)
+        score = compute_score(input, output)
+        print(f"p: {p}, {score}", file=sys.stderr)
+        if score > best_score:
+            best_score = score
+            best_output = output
+            best_p = p
+
+    for p in range(best_p - 5, best_p + 5):
+        if time_keeper.is_timeout():
+            break
+        output = make_initial_solution(input, p)
+        score = compute_score(input, output)
+        print(f"p: {p}, {score}", file=sys.stderr)
+        if score > best_score:
+            best_score = score
+            best_output = output
+            best_p = p
+
+    output = best_output
     output.print()
 
     score = compute_score(input, output)
