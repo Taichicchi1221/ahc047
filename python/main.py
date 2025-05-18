@@ -105,7 +105,7 @@ def make_initial_solution(input: Input, p=100):
     return Output(C, A)
 
 
-def hill_climbing(input: Input, time_keeper: TimeKeeper):
+def simulated_annealing(input: Input, time_keeper: TimeKeeper):
     def get_neighbor(output: Output):
         # 近傍解を生成する
         C = copy.deepcopy(output.C)
@@ -128,21 +128,35 @@ def hill_climbing(input: Input, time_keeper: TimeKeeper):
 
         return Output(C, A)
 
+    T0 = 1e3  # 初期温度
+    T_end = 1e-2  # 終了温度
+
+    step = 0
+
     best_output = make_initial_solution(input, p=50)
     best_score = compute_score(input, best_output)
+    current_output = best_output
+    current_score = best_score
 
-    while True:
-        now_output = get_neighbor(best_output)
-        now_score = compute_score(input, now_output)
+    while 1:
+        step += 1
+        elapsed = time_keeper.elapsed_time()
+        ratio = min(elapsed / time_keeper.timeout, 1.0)
+        T_now = T0 * (T_end / T0) ** ratio
 
-        if now_score > best_score:
-            print(f"{best_score} -> {now_score}", file=sys.stderr)
-            best_output = now_output
-            best_score = now_score
-
+        neighbor = get_neighbor(current_output)
+        neighbor_score = compute_score(input, neighbor)
+        delta = neighbor_score - current_score
+        if delta > 0 or random.random() < np.exp(delta / T_now):
+            print(f"1 step: {step}, {current_score} -> {neighbor_score}", file=sys.stderr)
+            current_output = neighbor
+            current_score = neighbor_score
+            if current_score > best_score:
+                print(f"2 step: {step} {best_score} -> {current_score}", file=sys.stderr)
+                best_output = current_output
+                best_score = current_score
         if time_keeper.is_timeout():
             break
-
     return best_output
 
 
@@ -196,7 +210,7 @@ def compute_word_probability(word, L, C, A):
     return max(0.0, min(1.0, ret))
 
 
-def compute_score(input: Input, output: Output):
+def compute_score(input: Input, output: Output, L: int = L):
     total_score = 0.0
     for s, p in zip(input.S, input.P):
         prob = compute_word_probability(s, L, output.C, output.A)
@@ -215,7 +229,7 @@ if __name__ == "__main__":
 
     input = Input(S, P)
 
-    output = hill_climbing(input, time_keeper)
+    output = simulated_annealing(input, time_keeper)
     output.print()
 
     score = compute_score(input, output)
